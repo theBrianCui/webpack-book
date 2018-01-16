@@ -1,16 +1,18 @@
 # Loader Definitions
 
-Webpack provides multiple ways to set up module loaders. Webpack 2 simplified the situation by introducing the `use` field. It can be a good idea to prefer absolute paths here as they allow you to move configuration without breaking assumptions.
+Webpack provides multiple ways to set up module loaders. Webpack 2 simplified the situation by introducing the `use` field.
 
 The other way is to set `context` field as this gives a similar effect and affects the way entry points and loaders are resolved. It doesn't have an impact on the output, though, and you still need to use an absolute path or `/` there.
 
-Assuming you set an `include` or `exclude` rule, packages loaded from *node_modules* still work as the assumption is that they have been compiled in such way that they work out of the box. If they don't, then you have to apply techniques covered in the *Package Consuming Techniques* chapter.
+T> It's a good idea to prefer absolute paths here as they allow you to move your configuration without breaking file location assumptions.
+
+Assuming you set an `include` or `exclude` rule, packages loaded from *node_modules* are assumed to work out of the box, requiring no additional compilation. If they don't, then you'll have to apply the techniques covered in the *Package Consuming Techniques* chapter.
 
 T> `include`/`exclude` is handy with *node_modules* as webpack processes and traverses the installed packages by default when you import JavaScript files to your project. Therefore you need to configure it to avoid that behavior. Other file types don't suffer from this issue.
 
 ## Anatomy of a Loader
 
-Webpack supports a large variety of formats through *loaders*. Also, it supports a couple of JavaScript module formats out of the box. The idea is the same. You always set up a loader, or loaders, and connect those with your directory structure.
+Webpack supports a large variety of file formats through *loaders*. Several JavaScript module formats are supported out of the box. Regardless of filetype, the general idea is the same: You always set up a loader, or loaders, and connect those with your directory structure.
 
 {pagebreak}
 
@@ -49,7 +51,7 @@ T> If you are not sure how a particular RegExp matches, consider using an online
 
 ## Loader Evaluation Order
 
-It's good to keep in mind that webpack's loaders are always evaluated from right to left and from bottom to top (separate definitions). The right-to-left rule is easier to remember when you think about as functions. You can read definition `use: ["style-loader", "css-loader"]` as `style(css(input))` based on this rule.
+Keep in mind that webpack's loaders are always evaluated from *right to left* and from *bottom to top* (separate definitions). The right-to-left rule is easier to remember when you think of them as functions. You can read definition `use: ["style-loader", "css-loader"]` as `style(css(input))` based on this rule.
 
 To see the rule in action, consider the example below:
 
@@ -60,7 +62,7 @@ To see the rule in action, consider the example below:
 },
 ```
 
-Based on the right to left rule, the example can be split up while keeping it equivalent:
+Based on the right-to-left rule, the example can be split up while keeping it equivalent:
 
 ```javascript
 {
@@ -75,13 +77,11 @@ Based on the right to left rule, the example can be split up while keeping it eq
 
 ### Enforcing Order
 
-Even though it would be possible to develop an arbitrary configuration using the rule above, it can be convenient to be able to force certain rules to be applied before or after regular ones. The `enforce` field can come in handy here. It can be set to either `pre` or `post` to push processing either before or after other loaders.
-
-Linting is a good example as the build should fail before it does anything else. Using `enforce: "post"` is rarer and it would imply you want to perform a check against the built source. Performing analysis against the built source is one potential example.
+Even though it would be possible to develop an arbitrary configuration using the rule above, it can be convenient to force certain rules to be applied before or after regular ones. The `enforce` field can come in handy here. It can be set to either `"pre"` or `"post"` to place execution either before or after other loaders, respectively. When more than one rule has `enforce` assigned to `"pre"` or `"post"`, these rules are executed in regular order (bottom to top) among rules with the same `enforce` assignment.
 
 {pagebreak}
 
-The basic syntax goes as below:
+Linting is a good example of a build rule that should run (and possibly fail) before any other build rules are executed. The basic syntax goes as below:
 
 ```javascript
 {
@@ -93,12 +93,13 @@ The basic syntax goes as below:
   use: "eslint-loader",
 },
 ```
+Using `enforce: "post"` is rarer and it would imply you want to perform a check against the built source. Performing analysis against the built source is one potential example.
 
-It would be possible to write the same configuration without `enforce` if you chained the declaration with other loaders related to the `test` carefully. Using `enforce` removes the necessity for that allows you to split loader execution into separate stages that are easier to compose.
+It is possible to write the same configuration without `enforce` if you carefully order loader declarations with related `test` conditions. Using `enforce` removes these ordering requirements and allows you to split loader execution into separate stages that are easier to compose.
 
 ## Passing Parameters to a Loader
 
-There's a query format that allows passing parameters to loaders:
+Parameters can be passed to loaders using a special query format. In the example below using `babel-loader`, `env` is assigned to the `presets` parameter:
 
 ```javascript
 {
@@ -111,11 +112,11 @@ There's a query format that allows passing parameters to loaders:
 },
 ```
 
-This style of configuration works in entries and source imports too as webpack picks it up. The format comes in handy in certain individual cases, but often you are better off using more readable alternatives.
+This query format also applies to entries and source imports. This format can be in handy for some cases, but often you are better off using a more readable alternative.
 
 {pagebreak}
 
-It's preferable to go through `use`:
+It's preferable to pass parameters using `use`:
 
 ```javascript
 {
